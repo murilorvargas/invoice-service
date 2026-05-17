@@ -2,10 +2,8 @@ package com.invoice.springinvoiceservice.services;
 
 import com.invoice.springinvoiceservice.dtos.requests.CreateCardRequest;
 import com.invoice.springinvoiceservice.dtos.responses.CardResponse;
-import com.invoice.springinvoiceservice.entities.Card;
-import com.invoice.springinvoiceservice.entities.CardStatus;
-import com.invoice.springinvoiceservice.entities.CardStatusEnum;
-import com.invoice.springinvoiceservice.entities.Wallet;
+import com.invoice.springinvoiceservice.entities.*;
+import com.invoice.springinvoiceservice.exceptions.customexceptions.WalletNotActiveException;
 import com.invoice.springinvoiceservice.exceptions.customexceptions.WalletNotFoundException;
 import com.invoice.springinvoiceservice.repositories.CardRepository;
 import com.invoice.springinvoiceservice.repositories.CardStatusRepository;
@@ -40,6 +38,10 @@ public class CardService {
 
         if (!requesterKey.equals(wallet.getRequesterKey())) {
             throw new WalletNotFoundException();
+        }
+
+        if (!wallet.getWalletStatus().getEnumerator().equals(WalletStatusEnum.ACTIVE.name())) {
+            throw new WalletNotActiveException();
         }
 
         String cardStatusEnumerator = CardStatusEnum.ACTIVE.name();
