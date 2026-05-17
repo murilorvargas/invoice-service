@@ -1,6 +1,8 @@
 package com.invoice.springinvoiceservice.services;
 
+import com.invoice.springinvoiceservice.connectors.SnsConnector;
 import com.invoice.springinvoiceservice.dtos.messages.CardEntryConclusionMessage;
+import com.invoice.springinvoiceservice.dtos.messages.CardEntryMessage;
 import com.invoice.springinvoiceservice.dtos.requests.CreateCardEntryRequest;
 import com.invoice.springinvoiceservice.dtos.responses.CardEntryResponse;
 import com.invoice.springinvoiceservice.entities.*;
@@ -8,6 +10,8 @@ import com.invoice.springinvoiceservice.exceptions.customexceptions.*;
 import com.invoice.springinvoiceservice.repositories.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -15,6 +19,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class CardEntryService {
+
+    private final SnsConnector snsConnector;
 
     private final WalletRepository walletRepository;
     private final CardRepository cardRepository;
@@ -24,6 +30,7 @@ public class CardEntryService {
     private final CardEntryRepository cardEntryRepository;
 
     public CardEntryService(
+        SnsConnector snsConnector,
         WalletRepository walletRepository,
         CardRepository cardRepository,
         WalletLimitRepository walletLimitRepository,
@@ -31,12 +38,18 @@ public class CardEntryService {
         CardEntryTypeRepository cardEntryTypeRepository,
         CardEntryRepository cardEntryRepository
     ) {
+        this.snsConnector = snsConnector;
         this.walletRepository = walletRepository;
         this.cardRepository = cardRepository;
         this.walletLimitRepository = walletLimitRepository;
         this.cardEntryStatusRepository = cardEntryStatusRepository;
         this.cardEntryTypeRepository = cardEntryTypeRepository;
         this.cardEntryRepository = cardEntryRepository;
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    private void publishCardEntryConclusionMessage(CardEntryConclusionMessage cardEntryConclusionMessage) {
+        snsConnector.publishMessage(CardEntryMessage.TOPIC_NAME, cardEntryConclusionMessage);
     }
 
     public CardEntryResponse createCardEntry(
@@ -101,7 +114,7 @@ public class CardEntryService {
 
         cardEntryRepository.save(cardEntry);
 
-        // PUBLISH MESSAGE TO CREATE INVOICE ITEMS AND INVOICES IF NECESSARY
+        publishCardEntryConclusionMessage(new CardEntryConclusionMessage(cardEntry.getCardEntryKey()));
 
         return CardEntryResponse.from(
             cardEntry.getCardEntryKey(),

@@ -12,5 +12,18 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  localstack:
+    image: localstack/localstack:latest
+    container_name: invoice-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns
+      - AWS_DEFAULT_REGION=us-east-1
+      - DEBUG=0
+    volumes:
+      - localstack_data:/var/lib/localstack
+
 volumes:
   mysql_data:
+  localstack_data:
