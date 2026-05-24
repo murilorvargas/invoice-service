@@ -1,5 +1,7 @@
 package com.invoice.springinvoiceservice.services;
 
+import com.invoice.springinvoiceservice.commons.DateHandler;
+import com.invoice.springinvoiceservice.commons.InstallmentHandler;
 import com.invoice.springinvoiceservice.connectors.SnsConnector;
 import com.invoice.springinvoiceservice.dtos.messages.CardEntryConclusionMessage;
 import com.invoice.springinvoiceservice.dtos.messages.CardEntryMessage;
@@ -14,6 +16,11 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,6 +35,10 @@ public class CardEntryService {
     private final CardEntryStatusRepository cardEntryStatusRepository;
     private final CardEntryTypeRepository cardEntryTypeRepository;
     private final CardEntryRepository cardEntryRepository;
+    private final InvoiceStatusRepository invoiceStatusRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final InvoiceItemStatusRepository invoiceItemStatusRepository;
+    private final InvoiceItemRepository invoiceItemRepository;
 
     public CardEntryService(
         SnsConnector snsConnector,
@@ -36,7 +47,11 @@ public class CardEntryService {
         WalletLimitRepository walletLimitRepository,
         CardEntryStatusRepository cardEntryStatusRepository,
         CardEntryTypeRepository cardEntryTypeRepository,
-        CardEntryRepository cardEntryRepository
+        CardEntryRepository cardEntryRepository,
+        InvoiceStatusRepository invoiceStatusRepository,
+        InvoiceRepository invoiceRepository,
+        InvoiceItemStatusRepository invoiceItemStatusRepository,
+        InvoiceItemRepository invoiceItemRepository
     ) {
         this.snsConnector = snsConnector;
         this.walletRepository = walletRepository;
@@ -45,11 +60,79 @@ public class CardEntryService {
         this.cardEntryStatusRepository = cardEntryStatusRepository;
         this.cardEntryTypeRepository = cardEntryTypeRepository;
         this.cardEntryRepository = cardEntryRepository;
+        this.invoiceStatusRepository = invoiceStatusRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.invoiceItemStatusRepository = invoiceItemStatusRepository;
+        this.invoiceItemRepository = invoiceItemRepository;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     private void publishCardEntryConclusionMessage(CardEntryConclusionMessage cardEntryConclusionMessage) {
         snsConnector.publishMessage(CardEntryMessage.TOPIC_NAME, cardEntryConclusionMessage);
+    }
+
+    private LocalDate getInvoiceDueDate(InvoiceConfiguration invoiceConfiguration, LocalDate closingDate) {
+        if (invoiceConfiguration.getDueType().getEnumerator().equals(DueTypeEnum.FIXED_DAY.name())) {
+            YearMonth dueYearMonth = YearMonth.from(closingDate).plusMonths(invoiceConfiguration.getDueOffsetMonths());
+            return DateHandler.createDateFromYearMonthDay(dueYearMonth.getYear(), dueYearMonth.getMonthValue(), invoiceConfiguration.getDueFixedDay());
+        }
+
+        return closingDate.plusDays(invoiceConfiguration.getDueDaysAfterClosing());
+    }
+
+    private List<Invoice> createWalletInvoices(Wallet wallet, CardEntry cardEntry, LocalDate currentDate) {
+        List<Invoice> invoices = new ArrayList<>();
+
+        YearMonth closingYearMonth = YearMonth.of(currentDate.getYear(), currentDate.getMonthValue());
+
+        LocalDate closingDate = DateHandler.createDateFromYearMonthDay(
+            closingYearMonth.getYear(),
+            closingYearMonth.getMonthValue(),
+            wallet.getInvoiceConfiguration().getClosingFixedDay()
+        );
+
+        if (currentDate.isAfter(closingDate)) {
+            closingYearMonth = closingYearMonth.plusMonths(1);
+        }
+
+        while (invoices.size() < cardEntry.getNumberOfInstallments()) {
+            closingDate = DateHandler.createDateFromYearMonthDay(
+                closingYearMonth.getYear(),
+                closingYearMonth.getMonthValue(),
+                wallet.getInvoiceConfiguration().getClosingFixedDay()
+            );
+
+            Optional<Invoice> optionalInvoice = invoiceRepository.findByWalletAndClosingDate(wallet, closingDate);
+            if (optionalInvoice.isPresent()) {
+                Invoice invoice = optionalInvoice.get();
+                if (!invoice.getInvoiceStatus().getEnumerator().equals(InvoiceStatusEnum.OPENED.name())) {
+                    closingYearMonth = closingYearMonth.plusMonths(1);
+                    continue;
+                }
+
+                invoices.add(invoice);
+            } else {
+                LocalDate dueDate = getInvoiceDueDate(wallet.getInvoiceConfiguration(), closingDate);
+
+                InvoiceStatus invoiceStatus = invoiceStatusRepository.findByEnumerator(InvoiceStatusEnum.OPENED.name());
+
+                Invoice invoice = new Invoice(
+                    UUID.randomUUID().toString(),
+                    closingDate,
+                    dueDate,
+                    new BigDecimal("0"),
+                    wallet,
+                    invoiceStatus
+                );
+                invoiceRepository.save(invoice);
+
+                invoices.add(invoice);
+            }
+
+            closingYearMonth = closingYearMonth.plusMonths(1);
+        }
+
+        return invoices;
     }
 
     public CardEntryResponse createCardEntry(
@@ -87,7 +170,6 @@ public class CardEntryService {
             }
 
             card.setUsedMonthlyLimitAmount(card.getUsedMonthlyLimitAmount().add(createCardEntryRequest.getAmount()));
-            cardRepository.save(card);
         }
 
         WalletLimit walletLimit = walletLimitRepository.findByWallet(wallet);
@@ -98,7 +180,10 @@ public class CardEntryService {
         }
 
         walletLimit.setUsedLimitAmount(walletLimit.getUsedLimitAmount().add(createCardEntryRequest.getAmount()));
-        walletLimitRepository.save(walletLimit);
+
+        CardEntryData cardEntryData = new CardEntryData(
+            createCardEntryRequest.getCardEntryData().getMerchantName()
+        );
 
         CardEntryStatus cardEntryStatus = cardEntryStatusRepository.findByEnumerator(CardEntryStatusEnum.PROCESSING_CONCLUSION.name());
         CardEntryType cardEntryType = cardEntryTypeRepository.findByEnumerator(createCardEntryRequest.getCardEntryType().name());
@@ -107,6 +192,8 @@ public class CardEntryService {
             UUID.randomUUID().toString(),
             createCardEntryRequest.getRequestControlKey(),
             createCardEntryRequest.getAmount(),
+            createCardEntryRequest.getNumberOfInstallments(),
+            cardEntryData,
             card,
             cardEntryStatus,
             cardEntryType
@@ -126,6 +213,38 @@ public class CardEntryService {
     }
 
     public void processCardEntry(CardEntryConclusionMessage cardEntryConclusionMessage) {
+        LocalDate currentDate = DateHandler.getCurrentDateWithTimezone();
 
+        CardEntry cardEntry = cardEntryRepository.findByCardEntryKey(cardEntryConclusionMessage.getCardEntryKey())
+            .orElseThrow(CardEntryNotFoundException::new);
+
+        if (!cardEntry.getCardEntryStatus().getEnumerator().equals(CardEntryStatusEnum.PROCESSING_CONCLUSION.name())) {
+            throw new CardEntryNotInProcessingConclusionStatusException();
+        }
+
+        List<Invoice> invoices = createWalletInvoices(cardEntry.getCard().getWallet(), cardEntry, currentDate);
+        List<BigDecimal> installmentAmounts = InstallmentHandler.calculateInstallmentAmounts(cardEntry.getAmount(), cardEntry.getNumberOfInstallments());
+
+        InvoiceItemStatus invoiceItemStatus = invoiceItemStatusRepository.findByEnumerator(InvoiceItemStatusEnum.CONCLUDED.name());
+
+        for (int i = 0; i < cardEntry.getNumberOfInstallments(); i++) {
+            String invoiceDescription = cardEntry.getNumberOfInstallments() > 1
+                ? String.format("%s - %d/%d", cardEntry.getCardEntryData().merchantName().strip(), i + 1, cardEntry.getNumberOfInstallments())
+                : cardEntry.getCardEntryData().merchantName().strip();
+
+            Invoice invoice = invoices.get(i);
+            invoice.setAmount(invoice.getAmount().add(installmentAmounts.get(i)));
+
+            InvoiceItem invoiceItem = new InvoiceItem(
+                UUID.randomUUID().toString(),
+                invoiceDescription,
+                installmentAmounts.get(i),
+                invoices.get(i),
+                invoiceItemStatus
+            );
+            invoiceItemRepository.save(invoiceItem);
+        }
+
+        cardEntry.setCardEntryStatus(cardEntryStatusRepository.findByEnumerator(CardEntryStatusEnum.CONCLUDED.name()));
     }
 }
