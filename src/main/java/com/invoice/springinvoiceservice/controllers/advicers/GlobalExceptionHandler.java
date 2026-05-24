@@ -1,6 +1,6 @@
 package com.invoice.springinvoiceservice.controllers.advicers;
 
-import com.invoice.springinvoiceservice.dtos.common.responses.ErrorResponse;
+import com.invoice.springinvoiceservice.dtos.responses.ErrorResponse;
 import com.invoice.springinvoiceservice.exceptions.BusinessException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
