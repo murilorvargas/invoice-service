@@ -40,6 +40,28 @@ public class Invoice {
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "invoice_status_id", nullable = false)
     private InvoiceStatus invoiceStatus;
+
+    public Invoice() {}
+
+    public Invoice (
+        String invoiceKey,
+        LocalDate closingDate,
+        LocalDate dueDate,
+        BigDecimal amount,
+        Wallet wallet,
+        InvoiceStatus invoiceStatus
+    ) {
+        this.invoiceKey = invoiceKey;
+        this.closingDate = closingDate;
+        this.dueDate = dueDate;
+        this.amount = amount;
+        this.wallet = wallet;
+        this.invoiceStatus = invoiceStatus;
+    }
 }
