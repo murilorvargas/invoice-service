@@ -3,7 +3,9 @@ package com.invoice.springinvoiceservice.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,6 +29,13 @@ public class CardEntry {
 
     @Column(name = "amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
+
+    @Column(name = "number_of_installments", nullable = false)
+    private Integer numberOfInstallments;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "card_entry_data", nullable = false, columnDefinition = "JSON")
+    private CardEntryData cardEntryData;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMP(3)")
@@ -54,6 +63,8 @@ public class CardEntry {
         String cardEntryKey,
         String requestControlKey,
         BigDecimal amount,
+        Integer numberOfInstallments,
+        CardEntryData cardEntryData,
         Card card,
         CardEntryStatus cardEntryStatus,
         CardEntryType cardEntryType
@@ -61,6 +72,8 @@ public class CardEntry {
         this.cardEntryKey = cardEntryKey;
         this.requestControlKey = requestControlKey;
         this.amount = amount;
+        this.numberOfInstallments = numberOfInstallments;
+        this.cardEntryData = cardEntryData;
         this.card = card;
         this.cardEntryStatus = cardEntryStatus;
         this.cardEntryType = cardEntryType;
