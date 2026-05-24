@@ -12,7 +12,19 @@ public class DueConfigurationValidator implements ConstraintValidator<DueConfigu
         if (invoiceConfiguration == null || invoiceConfiguration.getDueType() == null) return true;
 
         if (invoiceConfiguration.getDueType() == DueType.FIXED_DAY) {
-            return invoiceConfiguration.getDueFixedDay() != null && invoiceConfiguration.getDueOffsetMonths() != null;
+            if (invoiceConfiguration.getDueFixedDay() == null || invoiceConfiguration.getDueOffsetMonths() == null) {
+                return false;
+            }
+
+            int closingFixedDay = invoiceConfiguration.getClosingFixedDay();
+            int dueFixedDay = invoiceConfiguration.getDueFixedDay();
+            int dueOffsetMonths = invoiceConfiguration.getDueOffsetMonths();
+
+            int minGapInDays = dueOffsetMonths == 0
+                ? dueFixedDay - closingFixedDay
+                : (28 - closingFixedDay) + dueFixedDay;
+
+            return minGapInDays >= 3;
         }
         if (invoiceConfiguration.getDueType() == DueType.RULE) {
             return invoiceConfiguration.getDueDaysAfterClosing() != null;

@@ -7,7 +7,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@DueConfiguration(message = "Invalid due configuration: For FIXED_DAY, dueFixedDay and dueOffsetMonths must not be null. For RULE, dueDaysAfterClosing must not be null.")
+@DueConfiguration(message = "Invalid due configuration: For FIXED_DAY, dueFixedDay and dueOffsetMonths must not be null, and the resulting due date must be at least 3 days after the closing date in any month. For RULE, dueDaysAfterClosing must not be null.")
 public class InvoiceConfiguration {
 
     @NotNull(message = "Closing fixed day is required")
