@@ -201,7 +201,7 @@ public class CardEntryService {
 
         cardEntryRepository.save(cardEntry);
 
-        publishCardEntryConclusionMessage(new CardEntryConclusionMessage(cardEntry.getCardEntryKey()));
+        publishCardEntryConclusionMessage(new CardEntryConclusionMessage(wallet.getWalletKey(), cardEntry.getCardEntryKey()));
 
         return CardEntryResponse.from(
             cardEntry.getCardEntryKey(),
@@ -215,6 +215,9 @@ public class CardEntryService {
     public void processCardEntry(CardEntryConclusionMessage cardEntryConclusionMessage) {
         LocalDate currentDate = DateHandler.getCurrentDateWithTimezone();
 
+        Wallet wallet = walletRepository.findByWalletKeyForUpdate(cardEntryConclusionMessage.getWalletKey())
+            .orElseThrow(WalletNotFoundException::new);
+
         CardEntry cardEntry = cardEntryRepository.findByCardEntryKey(cardEntryConclusionMessage.getCardEntryKey())
             .orElseThrow(CardEntryNotFoundException::new);
 
@@ -222,7 +225,7 @@ public class CardEntryService {
             throw new CardEntryNotInProcessingConclusionStatusException();
         }
 
-        List<Invoice> invoices = createWalletInvoices(cardEntry.getCard().getWallet(), cardEntry, currentDate);
+        List<Invoice> invoices = createWalletInvoices(wallet, cardEntry, currentDate);
         List<BigDecimal> installmentAmounts = InstallmentHandler.calculateInstallmentAmounts(cardEntry.getAmount(), cardEntry.getNumberOfInstallments());
 
         InvoiceItemStatus invoiceItemStatus = invoiceItemStatusRepository.findByEnumerator(InvoiceItemStatusEnum.CONCLUDED.name());
