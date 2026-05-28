@@ -5,6 +5,8 @@ import com.invoice.invoiceservice.repositories.*;
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
 import com.invoice.invoiceservice.dtos.responses.WalletResponse;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +17,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class WalletService {
+
+    private static final Logger log = LoggerFactory.getLogger(WalletService.class);
 
     private final DueTypeRepository dueTypeRepository;
     private final InvoiceConfigurationRepository invoiceConfigurationRepository;
@@ -37,6 +41,7 @@ public class WalletService {
     }
 
     public WalletResponse createWallet(String requesterKey, CreateWalletRequest createWalletRequest) {
+        log.info("WalletService.createWallet - start - requesterKey: {}", requesterKey);
         String dueTypeEnumerator = createWalletRequest.getInvoiceConfiguration().getDueType().name();
         DueType dueType = dueTypeRepository.findByEnumerator(dueTypeEnumerator);
 
@@ -77,6 +82,7 @@ public class WalletService {
         walletLimitRepository.save(walletLimit);
         walletLimits.add(walletLimit);
 
+        log.info("WalletService.createWallet - finished - walletKey: {}", wallet.getWalletKey());
         return WalletResponse.from(wallet, walletLimits);
     }
 }

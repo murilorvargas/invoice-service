@@ -9,6 +9,8 @@ import com.invoice.invoiceservice.repositories.CardRepository;
 import com.invoice.invoiceservice.repositories.CardStatusRepository;
 import com.invoice.invoiceservice.repositories.WalletRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,6 +19,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class CardService {
+
+    private static final Logger log = LoggerFactory.getLogger(CardService.class);
 
     private final WalletRepository walletRepository;
     private final CardStatusRepository cardStatusRepository;
@@ -33,14 +37,18 @@ public class CardService {
     }
 
     public CardResponse createCard(String requesterKey, String walletKey, CreateCardRequest createCardRequest) {
+        log.info("CardService.createCard - start - walletKey: {}", walletKey);
+
         Wallet wallet = walletRepository.findByWalletKey(walletKey)
             .orElseThrow(WalletNotFoundException::new);
 
         if (!requesterKey.equals(wallet.getRequesterKey())) {
+            log.info("CardService.createCard - requester does not own wallet {}", walletKey);
             throw new WalletNotFoundException();
         }
 
         if (!wallet.getWalletStatus().getEnumerator().equals(WalletStatusEnum.ACTIVE.name())) {
+            log.info("CardService.createCard - wallet {} is not active", walletKey);
             throw new WalletNotActiveException();
         }
 
@@ -49,6 +57,7 @@ public class CardService {
 
         String documentNumber = wallet.getDocumentNumber();
         if (createCardRequest.getOwner() != null) {
+            log.info("CardService.createCard - using owner document number instead of wallet owner");
             documentNumber = createCardRequest.getOwner().getDocumentNumber();
         }
 
@@ -62,6 +71,8 @@ public class CardService {
             cardStatus
         );
         cardRepository.save(card);
+
+        log.info("CardService.createCard - finished - cardKey: {}", card.getCardKey());
         return CardResponse.from(card);
     }
 }

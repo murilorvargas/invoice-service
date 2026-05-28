@@ -11,6 +11,8 @@ import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.*;
 import com.invoice.invoiceservice.repositories.*;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -26,6 +28,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class CardEntryService {
+
+    private static final Logger log = LoggerFactory.getLogger(CardEntryService.class);
 
     private final SnsConnector snsConnector;
 
@@ -68,19 +72,29 @@ public class CardEntryService {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     private void publishCardEntryConclusionMessage(CardEntryConclusionMessage cardEntryConclusionMessage) {
+        log.info("CardEntryService.publishCardEntryConclusionMessage - start - walletKey: {}, cardEntryKey: {}",
+            cardEntryConclusionMessage.getWalletKey(), cardEntryConclusionMessage.getCardEntryKey());
         snsConnector.publishMessage(CardEntryMessage.TOPIC_NAME, cardEntryConclusionMessage);
     }
 
     private LocalDate getInvoiceDueDate(InvoiceConfiguration invoiceConfiguration, LocalDate closingDate) {
+        log.info("CardEntryService.getInvoiceDueDate - start - dueType: {}, closingDate: {}",
+            invoiceConfiguration.getDueType().getEnumerator(), closingDate);
+
         if (invoiceConfiguration.getDueType().getEnumerator().equals(DueTypeEnum.FIXED_DAY.name())) {
+            log.info("CardEntryService.getInvoiceDueDate - using FIXED_DAY strategy");
             YearMonth dueYearMonth = YearMonth.from(closingDate).plusMonths(invoiceConfiguration.getDueOffsetMonths());
             return DateHandler.createDateFromYearMonthDay(dueYearMonth.getYear(), dueYearMonth.getMonthValue(), invoiceConfiguration.getDueFixedDay());
         }
 
+        log.info("CardEntryService.getInvoiceDueDate - using RULE strategy (days after closing)");
         return closingDate.plusDays(invoiceConfiguration.getDueDaysAfterClosing());
     }
 
     private List<Invoice> createWalletInvoices(Wallet wallet, CardEntry cardEntry, LocalDate currentDate) {
+        log.info("CardEntryService.createWalletInvoices - start - walletKey: {}, numberOfInstallments: {}",
+            wallet.getWalletKey(), cardEntry.getNumberOfInstallments());
+
         List<Invoice> invoices = new ArrayList<>();
 
         YearMonth closingYearMonth = YearMonth.of(currentDate.getYear(), currentDate.getMonthValue());
@@ -92,6 +106,7 @@ public class CardEntryService {
         );
 
         if (currentDate.isAfter(closingDate)) {
+            log.info("CardEntryService.createWalletInvoices - current date is after closing date, shifting to next month");
             closingYearMonth = closingYearMonth.plusMonths(1);
         }
 
@@ -106,12 +121,15 @@ public class CardEntryService {
             if (optionalInvoice.isPresent()) {
                 Invoice invoice = optionalInvoice.get();
                 if (!invoice.getInvoiceStatus().getEnumerator().equals(InvoiceStatusEnum.OPENED.name())) {
+                    log.info("CardEntryService.createWalletInvoices - invoice for closing date {} is not open, skipping to next month", closingDate);
                     closingYearMonth = closingYearMonth.plusMonths(1);
                     continue;
                 }
 
+                log.info("CardEntryService.createWalletInvoices - reusing existing open invoice for closing date {}", closingDate);
                 invoices.add(invoice);
             } else {
+                log.info("CardEntryService.createWalletInvoices - creating new invoice for closing date {}", closingDate);
                 LocalDate dueDate = getInvoiceDueDate(wallet.getInvoiceConfiguration(), closingDate);
 
                 InvoiceStatus invoiceStatus = invoiceStatusRepository.findByEnumerator(InvoiceStatusEnum.OPENED.name());
@@ -141,14 +159,18 @@ public class CardEntryService {
         String cardKey,
         CreateCardEntryRequest createCardEntryRequest
     ) {
+        log.info("CardEntryService.createCardEntry - start - walletKey: {}, cardKey: {}", walletKey, cardKey);
+
         Wallet wallet = walletRepository.findByWalletKey(walletKey)
             .orElseThrow(WalletNotFoundException::new);
 
         if (!requesterKey.equals(wallet.getRequesterKey())) {
+            log.info("CardEntryService.createCardEntry - requester does not own wallet {}", walletKey);
             throw new WalletNotFoundException();
         }
 
         if (!wallet.getWalletStatus().getEnumerator().equals(WalletStatusEnum.ACTIVE.name())) {
+            log.info("CardEntryService.createCardEntry - wallet {} is not active", walletKey);
             throw new WalletNotActiveException();
         }
 
@@ -156,16 +178,20 @@ public class CardEntryService {
             .orElseThrow(CardNotFoundException::new);
 
         if (!card.getWallet().getWalletKey().equals(walletKey)) {
+            log.info("CardEntryService.createCardEntry - card {} does not belong to wallet {}", cardKey, walletKey);
             throw new CardNotFoundException();
         }
 
         if (!card.getCardStatus().getEnumerator().equals(CardStatusEnum.ACTIVE.name())) {
+            log.info("CardEntryService.createCardEntry - card {} is not active", cardKey);
             throw new CardNotActiveException();
         }
 
         if (card.getMonthlyLimitAmount() != null) {
+            log.info("CardEntryService.createCardEntry - card has monthly limit, checking availability");
             BigDecimal cardMonthlyLimitAmountAvailable = card.getMonthlyLimitAmount().subtract(card.getUsedMonthlyLimitAmount());
             if (createCardEntryRequest.getAmount().compareTo(cardMonthlyLimitAmountAvailable) > 0) {
+                log.info("CardEntryService.createCardEntry - card monthly limit exceeded for card {}", cardKey);
                 throw new CardMonthlyLimitExceededException();
             }
 
@@ -176,6 +202,7 @@ public class CardEntryService {
 
         BigDecimal walletLimitAmountAvailable = walletLimit.getLimitAmount().subtract(walletLimit.getUsedLimitAmount());
         if (createCardEntryRequest.getAmount().compareTo(walletLimitAmountAvailable) > 0) {
+            log.info("CardEntryService.createCardEntry - wallet limit exceeded for wallet {}", walletKey);
             throw new WalletLimitExceededException();
         }
 
@@ -203,6 +230,7 @@ public class CardEntryService {
 
         publishCardEntryConclusionMessage(new CardEntryConclusionMessage(wallet.getWalletKey(), cardEntry.getCardEntryKey()));
 
+        log.info("CardEntryService.createCardEntry - finished - cardEntryKey: {}", cardEntry.getCardEntryKey());
         return CardEntryResponse.from(
             cardEntry.getCardEntryKey(),
             cardEntry.getRequestControlKey(),
@@ -212,7 +240,10 @@ public class CardEntryService {
         );
     }
 
-    public void processCardEntry(CardEntryConclusionMessage cardEntryConclusionMessage) {
+    public void processCardEntryConclusion(CardEntryConclusionMessage cardEntryConclusionMessage) {
+        log.info("CardEntryService.processCardEntryConclusion - start - walletKey: {}, cardEntryKey: {}",
+            cardEntryConclusionMessage.getWalletKey(), cardEntryConclusionMessage.getCardEntryKey());
+
         LocalDate currentDate = DateHandler.getCurrentDateWithTimezone();
 
         Wallet wallet = walletRepository.findByWalletKeyForUpdate(cardEntryConclusionMessage.getWalletKey())
@@ -222,6 +253,8 @@ public class CardEntryService {
             .orElseThrow(CardEntryNotFoundException::new);
 
         if (!cardEntry.getCardEntryStatus().getEnumerator().equals(CardEntryStatusEnum.PROCESSING_CONCLUSION.name())) {
+            log.info("CardEntryService.processCardEntryConclusion - card entry {} is not in PROCESSING_CONCLUSION status",
+                cardEntryConclusionMessage.getCardEntryKey());
             throw new CardEntryNotInProcessingConclusionStatusException();
         }
 
@@ -249,5 +282,8 @@ public class CardEntryService {
         }
 
         cardEntry.setCardEntryStatus(cardEntryStatusRepository.findByEnumerator(CardEntryStatusEnum.CONCLUDED.name()));
+
+        log.info("CardEntryService.processCardEntryConclusion - finished - cardEntryKey: {}",
+            cardEntryConclusionMessage.getCardEntryKey());
     }
 }
