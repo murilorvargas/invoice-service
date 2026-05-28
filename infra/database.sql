@@ -47,6 +47,7 @@ CREATE TABLE invoice_db.invoice_status (
     updated_at  TIMESTAMP(3) NULL     DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
 );
 
+INSERT INTO invoice_db.invoice_status(enumerator) VALUES ('OPENED');
 INSERT INTO invoice_db.invoice_status(enumerator) VALUES ('CONCLUDED');
 INSERT INTO invoice_db.invoice_status(enumerator) VALUES ('CANCELLED');
 

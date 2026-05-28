@@ -10,7 +10,13 @@ services:
       MYSQL_USER: invoice
       MYSQL_PASSWORD: invoice
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "invoice", "-pinvoice"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   localstack:
     image: localstack/localstack:latest
@@ -18,12 +24,29 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sns, sqs
+      - SERVICES=sns,sqs
       - AWS_DEFAULT_REGION=us-east-1
       - DEBUG=0
-    volumes:
-      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
-volumes:
-  mysql_data:
-  localstack_data:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: invoice-app
+    ports:
+      - "3000:8080"
+    environment:
+      MYSQL_HOST: mysql
+      SNS_ENDPOINT: http://localstack:4566
+      SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      mysql:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
