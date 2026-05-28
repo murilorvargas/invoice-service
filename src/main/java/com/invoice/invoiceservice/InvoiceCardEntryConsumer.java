@@ -1,6 +1,8 @@
 package com.invoice.invoiceservice;
 
 import com.invoice.invoiceservice.dtos.messages.CardEntryConclusionMessage;
+import com.invoice.invoiceservice.dtos.messages.CardEntryEventTypeEnum;
+import com.invoice.invoiceservice.dtos.messages.CardEntryMessage;
 import com.invoice.invoiceservice.exceptions.customexceptions.CardEntryNotInProcessingConclusionStatusException;
 import com.invoice.invoiceservice.services.CardEntryService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -26,17 +28,21 @@ public class InvoiceCardEntryConsumer {
         this.objectMapper = objectMapper;
     }
 
-    private CardEntryConclusionMessage parseMessage(String rawMessage) {
+    private CardEntryMessage parseMessage(String rawMessage) {
         Map<String, String> envelope = objectMapper.readValue(rawMessage, new TypeReference<>() {});
-        return objectMapper.readValue(envelope.get("Message"), CardEntryConclusionMessage.class);
+        return objectMapper.readValue(envelope.get("Message"), CardEntryMessage.class);
     }
 
     @SqsListener(value = INVOICE_CARD_ENTRY_CONSUMER)
     public void receiveMessage(String rawMessage) {
         log.info("InvoiceCardEntryConsumer.receiveMessage - received message: {}", rawMessage);
         try {
-            CardEntryConclusionMessage cardEntryConclusionMessage = parseMessage(rawMessage);
-            cardEntryService.processCardEntryConclusion(cardEntryConclusionMessage);
+            CardEntryMessage cardEntryMessage = parseMessage(rawMessage);
+            if (cardEntryMessage.getEventType() == CardEntryEventTypeEnum.CARD_ENTRY_CONCLUSION) {
+                cardEntryService.processCardEntryConclusion((CardEntryConclusionMessage) cardEntryMessage);
+            } else {
+                throw new IllegalArgumentException("Unsupported card entry event type: " + cardEntryMessage.getEventType().name());
+            }
             log.info("InvoiceCardEntryConsumer.receiveMessage - message processed successfully");
         } catch (CardEntryNotInProcessingConclusionStatusException e) {
             log.warn("InvoiceCardEntryConsumer.receiveMessage - card entry not in valid status for conclusion processing: {}", e.getMessage());

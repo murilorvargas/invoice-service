@@ -1,7 +1,13 @@
 package com.invoice.invoiceservice.dtos.messages;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "eventType")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = CardEntryConclusionMessage.class, name = "CARD_ENTRY_CONCLUSION")
+})
 @Data
 public abstract class CardEntryMessage {
 
