@@ -63,7 +63,7 @@ Minimum 3-day gap between closing and due date is enforced.
 
 ## Logging
 
-Use SLF4J (`LoggerFactory.getLogger(ClassName.class)`) in all classes that need logging.
+Use Lombok's `@Slf4j` annotation on the class — it generates the `log` field automatically. Do not declare the logger manually.
 
 Log message format: `ClassName.methodName - <description>`. Include relevant identifiers (keys, statuses) as SLF4J placeholders `{}`.
 
