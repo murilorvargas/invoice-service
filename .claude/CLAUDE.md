@@ -61,6 +61,19 @@ Minimum 3-day gap between closing and due date is enforced.
 
 **Installment rounding:** `InstallmentHandler` uses `RoundingMode.DOWN`; the remainder goes to the first installment.
 
+## Logging
+
+Use SLF4J (`LoggerFactory.getLogger(ClassName.class)`) in all classes that need logging.
+
+Log message format: `ClassName.methodName - <description>`. Include relevant identifiers (keys, statuses) as SLF4J placeholders `{}`.
+
+Rules:
+- **Public methods:** log at the start and at the end (before return)
+- **Private methods:** log at the start only
+- **Every flow change** (if/else/while branches): add a `log.info` inside each branch signaling which path was taken
+- **Mapped exceptions (catch):** use `log.warn` with the exception message
+- **Unexpected exceptions (catch):** use `log.error("...", e)` to include the full traceback before rethrowing
+
 ## Conventions (from README)
 
 **Branch naming:** `type/description` (e.g., `feat/wallet-creation`)
