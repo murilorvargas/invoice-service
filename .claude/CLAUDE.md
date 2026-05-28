@@ -61,6 +61,17 @@ Minimum 3-day gap between closing and due date is enforced.
 
 **Installment rounding:** `InstallmentHandler` uses `RoundingMode.DOWN`; the remainder goes to the first installment.
 
+## Annotation order
+
+Class-level annotations must follow this order:
+
+1. **Lombok** — `@Slf4j`, `@Data`, `@EqualsAndHashCode`, `@Builder`, etc.
+2. **Spring stereotype** — `@Component`, `@Service`, `@Repository`, `@RestController`, `@RestControllerAdvice`, `@SpringBootApplication`
+3. **Spring behavior** — `@Transactional`
+4. **Jackson** — `@JsonTypeInfo`, `@JsonSubTypes`
+5. **JPA** — `@Entity`, `@Table`
+6. **Validation meta** (`@interface` only) — `@Documented`, `@Constraint`, `@Target`, `@Retention`
+
 ## Logging
 
 Use Lombok's `@Slf4j` annotation on the class — it generates the `log` field automatically. Do not declare the logger manually.
