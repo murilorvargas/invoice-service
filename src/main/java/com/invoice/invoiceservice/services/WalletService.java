@@ -5,8 +5,7 @@ import com.invoice.invoiceservice.repositories.*;
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
 import com.invoice.invoiceservice.dtos.responses.WalletResponse;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,11 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 public class WalletService {
-
-    private static final Logger log = LoggerFactory.getLogger(WalletService.class);
 
     private final DueTypeRepository dueTypeRepository;
     private final InvoiceConfigurationRepository invoiceConfigurationRepository;

@@ -1,16 +1,14 @@
 package com.invoice.invoiceservice.connectors;
 
 import io.awspring.cloud.sns.core.SnsTemplate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Component
 public class SnsConnector {
-
-    private static final Logger log = LoggerFactory.getLogger(SnsConnector.class);
 
     private final SnsTemplate snsTemplate;
 

@@ -4,18 +4,16 @@ import com.invoice.invoiceservice.dtos.messages.CardEntryConclusionMessage;
 import com.invoice.invoiceservice.exceptions.customexceptions.CardEntryNotInProcessingConclusionStatusException;
 import com.invoice.invoiceservice.services.CardEntryService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
+@Slf4j
 @Component
 public class InvoiceCardEntryConsumer {
-
-    private static final Logger log = LoggerFactory.getLogger(InvoiceCardEntryConsumer.class);
 
     private static final String INVOICE_CARD_ENTRY_CONSUMER = "invoice-card_entry-consumer";
 

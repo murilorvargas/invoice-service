@@ -11,8 +11,7 @@ import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.*;
 import com.invoice.invoiceservice.repositories.*;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -25,11 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 public class CardEntryService {
-
-    private static final Logger log = LoggerFactory.getLogger(CardEntryService.class);
 
     private final SnsConnector snsConnector;
 
