@@ -27,4 +27,4 @@ docker compose exec localstack awslocal sns subscribe \
 echo "==> Starting application..."
 docker compose up -d --build --wait app
 
-echo "==> All done! Application available at http://localhost:3000"
+echo "==> All done! Application available at http://localhost:8080"
