@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/wallets/{walletKey}/cards/{cardKey}/card_entries")
+@RestController
+@RequestMapping("/wallets/{walletKey}/cards/{cardKey}/card_entries")
 public class CardEntryController {
 
     private final CardEntryService cardEntryService;
@@ -20,8 +21,8 @@ public class CardEntryController {
     @PostMapping
     public ResponseEntity<CardEntryResponse> createCardEntry(
         @RequestHeader("SELECTED-USER") String requesterKey,
-        @PathVariable("walletKey") String walletKey,
-        @PathVariable("cardKey") String cardKey,
+        @PathVariable String walletKey,
+        @PathVariable String cardKey,
         @Valid @RequestBody CreateCardEntryRequest createCardEntryRequest
     ) {
         CardEntryResponse cardEntryResponse = cardEntryService.createCardEntry(

@@ -6,12 +6,10 @@ import com.invoice.invoiceservice.services.WalletService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("/wallets")
+@RestController
+@RequestMapping("/wallets")
 public class WalletController {
 
     private final WalletService walletService;
