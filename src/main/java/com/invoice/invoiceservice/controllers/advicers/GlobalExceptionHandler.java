@@ -3,15 +3,18 @@ package com.invoice.invoiceservice.controllers.advicers;
 import com.invoice.invoiceservice.dtos.responses.ErrorResponse;
 import com.invoice.invoiceservice.exceptions.BusinessException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -43,6 +46,18 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST.getReasonPhrase(),
             "GEN00001",
             fieldErrors
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String expectedType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+
+        ErrorResponse response = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.getReasonPhrase(),
+            "GEN00002",
+            String.format("parameter '%s' has invalid value '%s', expected %s", ex.getName(), ex.getValue(), expectedType)
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
