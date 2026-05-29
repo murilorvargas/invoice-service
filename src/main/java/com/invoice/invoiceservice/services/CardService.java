@@ -2,17 +2,22 @@ package com.invoice.invoiceservice.services;
 
 import com.invoice.invoiceservice.dtos.requests.CreateCardRequest;
 import com.invoice.invoiceservice.dtos.responses.CardResponse;
+import com.invoice.invoiceservice.dtos.responses.PaginationResponse;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.WalletNotActiveException;
 import com.invoice.invoiceservice.exceptions.customexceptions.WalletNotFoundException;
 import com.invoice.invoiceservice.repositories.CardRepository;
 import com.invoice.invoiceservice.repositories.CardStatusRepository;
 import com.invoice.invoiceservice.repositories.WalletRepository;
+import com.invoice.invoiceservice.repositories.specifications.CardSpecification;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -72,5 +77,39 @@ public class CardService {
 
         log.info("CardService.createCard - finished - cardKey: {}", card.getCardKey());
         return CardResponse.from(card);
+    }
+
+    public PaginationResponse<CardResponse> getCards(
+        String requesterKey,
+        String walletKey,
+        String cardKey,
+        String requestControlKey,
+        String documentNumber,
+        int page,
+        int pageSize
+    ) {
+        log.info("CardService.getCards - start - walletKey: {}", walletKey);
+
+        Wallet wallet = walletRepository.findByWalletKey(walletKey)
+            .orElseThrow(WalletNotFoundException::new);
+
+        if (!requesterKey.equals(wallet.getRequesterKey())) {
+            log.info("CardService.getCards - requester does not own wallet {}", walletKey);
+            throw new WalletNotFoundException();
+        }
+
+        Specification<Card> spec = Specification.where(CardSpecification.withWallet(wallet))
+            .and(CardSpecification.withCardKeyIfPresent(cardKey))
+            .and(CardSpecification.withRequestControlKeyIfPresent(requestControlKey))
+            .and(CardSpecification.withDocumentNumberIfPresent(documentNumber));
+
+        List<CardResponse> cards = cardRepository.findAll(spec, PageRequest.of(page - 1, pageSize))
+            .getContent()
+            .stream()
+            .map(CardResponse::from)
+            .toList();
+
+        log.info("CardService.getCards - finished - walletKey: {}, total: {}", walletKey, cards.size());
+        return PaginationResponse.of(cards, page, pageSize);
     }
 }

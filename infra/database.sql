@@ -138,6 +138,8 @@ CREATE TABLE invoice_db.card (
     CONSTRAINT fk1_card_status FOREIGN KEY (card_status_id) REFERENCES invoice_db.card_status(id)
 );
 
+CREATE INDEX card_document_number_index ON invoice_db.card (document_number);
+
 CREATE TABLE invoice_db.card_entry (
     id                      BIGINT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
     version                 BIGINT         NULL,
