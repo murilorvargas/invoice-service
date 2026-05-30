@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -70,5 +71,29 @@ public class GlobalExceptionHandler {
             ex.getDescription()
         );
         return ResponseEntity.status(ex.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException ex) {
+        log.warn("GlobalExceptionHandler.handleNoResourceFound - resource not found: {}", ex.getMessage());
+
+        ErrorResponse response = new ErrorResponse(
+            HttpStatus.NOT_FOUND.getReasonPhrase(),
+            "GEN00404",
+            String.format("No resource found for %s %s", ex.getHttpMethod(), ex.getResourcePath())
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
+        log.error("GlobalExceptionHandler.handleUnexpectedException - unexpected error", ex);
+
+        ErrorResponse response = new ErrorResponse(
+            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+            "GEN00500",
+            "An unexpected error occurred. Please try again later."
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }
