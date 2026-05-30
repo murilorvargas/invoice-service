@@ -1,7 +1,9 @@
 package com.invoice.invoiceservice.controllers;
 
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
-import com.invoice.invoiceservice.dtos.responses.WalletResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletGetResponse;
 import com.invoice.invoiceservice.services.WalletService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,11 +21,24 @@ public class WalletController {
     }
 
     @PostMapping
-    public ResponseEntity<WalletResponse> createWallet(
+    public ResponseEntity<WalletCreateResponse> createWallet(
         @RequestHeader("SELECTED-USER") String requesterKey,
         @Valid @RequestBody CreateWalletRequest createWalletRequest
     ) {
-        WalletResponse createdWalletResponse = walletService.createWallet(requesterKey, createWalletRequest);
+        WalletCreateResponse createdWalletResponse = walletService.createWallet(requesterKey, createWalletRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdWalletResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<PaginationResponse<WalletGetResponse>> getWallets(
+        @RequestHeader("SELECTED-USER") String requesterKey,
+        @RequestParam(required = false) String walletKey,
+        @RequestParam(required = false) String requestControlKey,
+        @RequestParam(required = false) String documentNumber,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "30") int pageSize
+    ) {
+        PaginationResponse<WalletGetResponse> walletResponses = walletService.getWallets(requesterKey, walletKey, requestControlKey, documentNumber, page, pageSize);
+        return ResponseEntity.ok(walletResponses);
     }
 }

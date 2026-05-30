@@ -1,12 +1,14 @@
 package com.invoice.invoiceservice.dtos.responses;
 
+import com.invoice.invoiceservice.dtos.responses.commons.InvoiceConfigurationResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.WalletLimitResponse;
 import com.invoice.invoiceservice.entities.Wallet;
 import com.invoice.invoiceservice.entities.WalletLimit;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record WalletResponse(
+public record WalletCreateResponse(
     String walletKey,
     String requestControlKey,
     String documentNumber,
@@ -15,7 +17,7 @@ public record WalletResponse(
     List<WalletLimitResponse> walletLimits
 ) {
 
-    public static WalletResponse from(Wallet wallet, List<WalletLimit> walletLimits) {
+    public static WalletCreateResponse from(Wallet wallet, List<WalletLimit> walletLimits) {
         InvoiceConfigurationResponse invoiceConfigurationResponse = new InvoiceConfigurationResponse(
             wallet.getInvoiceConfiguration().getInvoiceConfigurationKey(),
             wallet.getInvoiceConfiguration().getClosingFixedDay(),
@@ -36,7 +38,7 @@ public record WalletResponse(
             ))
             .collect(Collectors.toList());
 
-        return new WalletResponse(
+        return new WalletCreateResponse(
             wallet.getWalletKey(),
             wallet.getRequestControlKey(),
             wallet.getDocumentNumber(),

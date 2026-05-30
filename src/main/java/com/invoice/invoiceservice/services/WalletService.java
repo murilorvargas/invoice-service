@@ -3,9 +3,14 @@ package com.invoice.invoiceservice.services;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.repositories.*;
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
-import com.invoice.invoiceservice.dtos.responses.WalletResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletGetResponse;
+import com.invoice.invoiceservice.repositories.specifications.WalletSpecification;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,7 +43,7 @@ public class WalletService {
         this.walletLimitRepository = walletLimitRepository;
     }
 
-    public WalletResponse createWallet(String requesterKey, CreateWalletRequest createWalletRequest) {
+    public WalletCreateResponse createWallet(String requesterKey, CreateWalletRequest createWalletRequest) {
         log.info("WalletService.createWallet - start - requesterKey: {}", requesterKey);
         String dueTypeEnumerator = createWalletRequest.getInvoiceConfiguration().getDueType().name();
         DueType dueType = dueTypeRepository.findByEnumerator(dueTypeEnumerator);
@@ -81,6 +86,31 @@ public class WalletService {
         walletLimits.add(walletLimit);
 
         log.info("WalletService.createWallet - finished - walletKey: {}", wallet.getWalletKey());
-        return WalletResponse.from(wallet, walletLimits);
+        return WalletCreateResponse.from(wallet, walletLimits);
+    }
+
+    public PaginationResponse<WalletGetResponse> getWallets(
+        String requesterKey,
+        String walletKey,
+        String requestControlKey,
+        String documentNumber,
+        int page,
+        int pageSize
+    ) {
+        log.info("WalletService.getWallets - start - requesterKey: {}", requesterKey);
+
+        Specification<Wallet> spec = Specification.where(WalletSpecification.withRequesterKey(requesterKey))
+            .and(WalletSpecification.withWalletKeyIfPresent(walletKey))
+            .and(WalletSpecification.withRequestControlKeyIfPresent(requestControlKey))
+            .and(WalletSpecification.withDocumentNumberIfPresent(documentNumber));
+
+        List<WalletGetResponse> wallets = walletRepository.findAll(spec, PageRequest.of(page - 1, pageSize))
+            .getContent()
+            .stream()
+            .map(WalletGetResponse::from)
+            .toList();
+
+        log.info("WalletService.getWallets - finished - requesterKey: {}, total: {}", requesterKey, wallets.size());
+        return PaginationResponse.of(wallets, page, pageSize);
     }
 }
