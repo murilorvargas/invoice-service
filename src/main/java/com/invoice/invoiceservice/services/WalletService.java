@@ -3,8 +3,10 @@ package com.invoice.invoiceservice.services;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.repositories.*;
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
+import com.invoice.invoiceservice.exceptions.customexceptions.WalletNotFoundException;
 import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.dtos.responses.WalletCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletGetByKeyResponse;
 import com.invoice.invoiceservice.dtos.responses.WalletGetResponse;
 import com.invoice.invoiceservice.repositories.specifications.WalletSpecification;
 import jakarta.transaction.Transactional;
@@ -87,6 +89,23 @@ public class WalletService {
 
         log.info("WalletService.createWallet - finished - walletKey: {}", wallet.getWalletKey());
         return WalletCreateResponse.from(wallet, walletLimits);
+    }
+
+    public WalletGetByKeyResponse getWalletByKey(String requesterKey, String walletKey) {
+        log.info("WalletService.getWalletByKey - start - walletKey: {}", walletKey);
+
+        Wallet wallet = walletRepository.findByWalletKey(walletKey)
+            .orElseThrow(WalletNotFoundException::new);
+
+        if (!requesterKey.equals(wallet.getRequesterKey())) {
+            log.info("WalletService.getWalletByKey - requester does not own wallet {}", walletKey);
+            throw new WalletNotFoundException();
+        }
+
+        List<WalletLimit> walletLimits = walletLimitRepository.findAllByWallet(wallet);
+
+        log.info("WalletService.getWalletByKey - finished - walletKey: {}", walletKey);
+        return WalletGetByKeyResponse.from(wallet, walletLimits);
     }
 
     public PaginationResponse<WalletGetResponse> getWallets(

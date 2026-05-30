@@ -3,6 +3,7 @@ package com.invoice.invoiceservice.controllers;
 import com.invoice.invoiceservice.dtos.requests.CreateWalletRequest;
 import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.dtos.responses.WalletCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.WalletGetByKeyResponse;
 import com.invoice.invoiceservice.dtos.responses.WalletGetResponse;
 import com.invoice.invoiceservice.services.WalletService;
 import jakarta.validation.Valid;
@@ -39,6 +40,15 @@ public class WalletController {
         @RequestParam(defaultValue = "30") int pageSize
     ) {
         PaginationResponse<WalletGetResponse> walletResponses = walletService.getWallets(requesterKey, walletKey, requestControlKey, documentNumber, page, pageSize);
-        return ResponseEntity.ok(walletResponses);
+        return ResponseEntity.status(HttpStatus.OK).body(walletResponses);
+    }
+
+    @GetMapping("/{walletKey}")
+    public ResponseEntity<WalletGetByKeyResponse> getWalletByKey(
+        @RequestHeader("SELECTED-USER") String requesterKey,
+        @PathVariable String walletKey
+    ) {
+        WalletGetByKeyResponse walletResponse = walletService.getWalletByKey(requesterKey, walletKey);
+        return ResponseEntity.status(HttpStatus.OK).body(walletResponse);
     }
 }
