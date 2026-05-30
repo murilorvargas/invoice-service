@@ -41,6 +41,6 @@ public class CardController {
         @RequestParam(defaultValue = "30") int pageSize
     ) {
         PaginationResponse<CardGetResponse> cardResponses = cardService.getCards(requesterKey, walletKey, cardKey, requestControlKey, documentNumber, page, pageSize);
-        return ResponseEntity.ok(cardResponses);
+        return ResponseEntity.status(HttpStatus.OK).body(cardResponses);
     }
 }
