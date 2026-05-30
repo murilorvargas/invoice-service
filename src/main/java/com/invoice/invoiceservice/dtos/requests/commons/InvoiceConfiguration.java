@@ -1,4 +1,4 @@
-package com.invoice.invoiceservice.dtos.definitions;
+package com.invoice.invoiceservice.dtos.requests.commons;
 
 import com.invoice.invoiceservice.dtos.validators.dueconfiguration.DueConfiguration;
 import jakarta.validation.constraints.*;

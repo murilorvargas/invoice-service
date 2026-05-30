@@ -1,4 +1,4 @@
-package com.invoice.invoiceservice.dtos.responses;
+package com.invoice.invoiceservice.dtos.responses.commons;
 
 public record ErrorResponse(
     String title,

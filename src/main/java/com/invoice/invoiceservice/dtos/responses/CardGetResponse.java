@@ -2,15 +2,15 @@ package com.invoice.invoiceservice.dtos.responses;
 
 import com.invoice.invoiceservice.entities.Card;
 
-public record CardResponse(
+public record CardGetResponse(
     String cardKey,
     String requestControlKey,
     String documentNumber,
     String status
 ) {
 
-    public static CardResponse from(Card card) {
-        return new CardResponse(
+    public static CardGetResponse from(Card card) {
+        return new CardGetResponse(
             card.getCardKey(),
             card.getRequestControlKey(),
             card.getDocumentNumber(),

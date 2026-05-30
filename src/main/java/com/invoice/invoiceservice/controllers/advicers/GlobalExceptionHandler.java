@@ -1,6 +1,6 @@
 package com.invoice.invoiceservice.controllers.advicers;
 
-import com.invoice.invoiceservice.dtos.responses.ErrorResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.ErrorResponse;
 import com.invoice.invoiceservice.exceptions.BusinessException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

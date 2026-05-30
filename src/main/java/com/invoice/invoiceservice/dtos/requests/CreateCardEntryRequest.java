@@ -1,7 +1,7 @@
 package com.invoice.invoiceservice.dtos.requests;
 
-import com.invoice.invoiceservice.dtos.definitions.CardEntryData;
-import com.invoice.invoiceservice.dtos.definitions.CardEntryType;
+import com.invoice.invoiceservice.dtos.requests.commons.CardEntryData;
+import com.invoice.invoiceservice.dtos.requests.commons.CardEntryType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;

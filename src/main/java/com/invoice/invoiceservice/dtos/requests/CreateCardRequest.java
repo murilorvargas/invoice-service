@@ -1,6 +1,6 @@
 package com.invoice.invoiceservice.dtos.requests;
 
-import com.invoice.invoiceservice.dtos.definitions.Person;
+import com.invoice.invoiceservice.dtos.requests.commons.Person;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

@@ -6,7 +6,7 @@ import com.invoice.invoiceservice.connectors.SnsConnector;
 import com.invoice.invoiceservice.dtos.messages.CardEntryConclusionMessage;
 import com.invoice.invoiceservice.dtos.messages.CardEntryMessage;
 import com.invoice.invoiceservice.dtos.requests.CreateCardEntryRequest;
-import com.invoice.invoiceservice.dtos.responses.CardEntryResponse;
+import com.invoice.invoiceservice.dtos.responses.CardEntryCreateResponse;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.*;
 import com.invoice.invoiceservice.repositories.*;
@@ -151,7 +151,7 @@ public class CardEntryService {
         return invoices;
     }
 
-    public CardEntryResponse createCardEntry(
+    public CardEntryCreateResponse createCardEntry(
         String requesterKey,
         String walletKey,
         String cardKey,
@@ -229,7 +229,7 @@ public class CardEntryService {
         publishCardEntryConclusionMessage(new CardEntryConclusionMessage(wallet.getWalletKey(), cardEntry.getCardEntryKey()));
 
         log.info("CardEntryService.createCardEntry - finished - cardEntryKey: {}", cardEntry.getCardEntryKey());
-        return CardEntryResponse.from(
+        return CardEntryCreateResponse.from(
             cardEntry.getCardEntryKey(),
             cardEntry.getRequestControlKey(),
             cardEntry.getAmount(),

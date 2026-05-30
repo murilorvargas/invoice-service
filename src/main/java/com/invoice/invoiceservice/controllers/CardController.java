@@ -1,8 +1,9 @@
 package com.invoice.invoiceservice.controllers;
 
 import com.invoice.invoiceservice.dtos.requests.CreateCardRequest;
-import com.invoice.invoiceservice.dtos.responses.CardResponse;
-import com.invoice.invoiceservice.dtos.responses.PaginationResponse;
+import com.invoice.invoiceservice.dtos.responses.CardCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.CardGetResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.services.CardService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,17 +21,17 @@ public class CardController {
     }
 
     @PostMapping
-    public ResponseEntity<CardResponse> createCard(
+    public ResponseEntity<CardCreateResponse> createCard(
         @RequestHeader("SELECTED-USER") String requesterKey,
         @PathVariable String walletKey,
         @Valid @RequestBody CreateCardRequest createCardRequest
     ) {
-        CardResponse createCardResponse = cardService.createCard(requesterKey, walletKey, createCardRequest);
+        CardCreateResponse createCardResponse = cardService.createCard(requesterKey, walletKey, createCardRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createCardResponse);
     }
 
     @GetMapping
-    public ResponseEntity<PaginationResponse<CardResponse>> getCards(
+    public ResponseEntity<PaginationResponse<CardGetResponse>> getCards(
         @RequestHeader("SELECTED-USER") String requesterKey,
         @PathVariable String walletKey,
         @RequestParam(required = false) String cardKey,
@@ -39,7 +40,7 @@ public class CardController {
         @RequestParam(defaultValue = "1") int page,
         @RequestParam(defaultValue = "30") int pageSize
     ) {
-        PaginationResponse<CardResponse> cardResponses = cardService.getCards(requesterKey, walletKey, cardKey, requestControlKey, documentNumber, page, pageSize);
+        PaginationResponse<CardGetResponse> cardResponses = cardService.getCards(requesterKey, walletKey, cardKey, requestControlKey, documentNumber, page, pageSize);
         return ResponseEntity.ok(cardResponses);
     }
 }

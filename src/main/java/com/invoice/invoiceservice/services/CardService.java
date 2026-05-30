@@ -1,8 +1,9 @@
 package com.invoice.invoiceservice.services;
 
 import com.invoice.invoiceservice.dtos.requests.CreateCardRequest;
-import com.invoice.invoiceservice.dtos.responses.CardResponse;
-import com.invoice.invoiceservice.dtos.responses.PaginationResponse;
+import com.invoice.invoiceservice.dtos.responses.CardCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.CardGetResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.WalletNotActiveException;
 import com.invoice.invoiceservice.exceptions.customexceptions.WalletNotFoundException;
@@ -39,7 +40,7 @@ public class CardService {
         this.cardRepository = cardRepository;
     }
 
-    public CardResponse createCard(String requesterKey, String walletKey, CreateCardRequest createCardRequest) {
+    public CardCreateResponse createCard(String requesterKey, String walletKey, CreateCardRequest createCardRequest) {
         log.info("CardService.createCard - start - walletKey: {}", walletKey);
 
         Wallet wallet = walletRepository.findByWalletKey(walletKey)
@@ -76,10 +77,10 @@ public class CardService {
         cardRepository.save(card);
 
         log.info("CardService.createCard - finished - cardKey: {}", card.getCardKey());
-        return CardResponse.from(card);
+        return CardCreateResponse.from(card);
     }
 
-    public PaginationResponse<CardResponse> getCards(
+    public PaginationResponse<CardGetResponse> getCards(
         String requesterKey,
         String walletKey,
         String cardKey,
@@ -103,10 +104,10 @@ public class CardService {
             .and(CardSpecification.withRequestControlKeyIfPresent(requestControlKey))
             .and(CardSpecification.withDocumentNumberIfPresent(documentNumber));
 
-        List<CardResponse> cards = cardRepository.findAll(spec, PageRequest.of(page - 1, pageSize))
+        List<CardGetResponse> cards = cardRepository.findAll(spec, PageRequest.of(page - 1, pageSize))
             .getContent()
             .stream()
-            .map(CardResponse::from)
+            .map(CardGetResponse::from)
             .toList();
 
         log.info("CardService.getCards - finished - walletKey: {}, total: {}", walletKey, cards.size());

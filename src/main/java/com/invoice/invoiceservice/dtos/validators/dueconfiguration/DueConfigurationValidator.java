@@ -1,7 +1,7 @@
 package com.invoice.invoiceservice.dtos.validators.dueconfiguration;
 
-import com.invoice.invoiceservice.dtos.definitions.DueType;
-import com.invoice.invoiceservice.dtos.definitions.InvoiceConfiguration;
+import com.invoice.invoiceservice.dtos.requests.commons.DueType;
+import com.invoice.invoiceservice.dtos.requests.commons.InvoiceConfiguration;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

@@ -2,7 +2,7 @@ package com.invoice.invoiceservice.dtos.responses;
 
 import java.math.BigDecimal;
 
-public record CardEntryResponse(
+public record CardEntryCreateResponse(
     String cardEntryKey,
     String requestControlKey,
     BigDecimal amount,
@@ -10,14 +10,14 @@ public record CardEntryResponse(
     String cardEntryStatus
 ) {
 
-    public static CardEntryResponse from(
+    public static CardEntryCreateResponse from(
         String cardEntryKey,
         String requestControlKey,
         BigDecimal amount,
         String cardEntryType,
         String cardEntryStatus
     ) {
-        return new CardEntryResponse(
+        return new CardEntryCreateResponse(
             cardEntryKey,
             requestControlKey,
             amount,

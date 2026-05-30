@@ -1,8 +1,8 @@
 package com.invoice.invoiceservice.dtos.requests;
 
-import com.invoice.invoiceservice.dtos.definitions.InvoiceConfiguration;
-import com.invoice.invoiceservice.dtos.definitions.Person;
-import com.invoice.invoiceservice.dtos.definitions.WalletLimit;
+import com.invoice.invoiceservice.dtos.requests.commons.InvoiceConfiguration;
+import com.invoice.invoiceservice.dtos.requests.commons.Person;
+import com.invoice.invoiceservice.dtos.requests.commons.WalletLimit;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

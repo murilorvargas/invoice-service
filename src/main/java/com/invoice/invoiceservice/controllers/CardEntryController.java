@@ -1,7 +1,7 @@
 package com.invoice.invoiceservice.controllers;
 
 import com.invoice.invoiceservice.dtos.requests.CreateCardEntryRequest;
-import com.invoice.invoiceservice.dtos.responses.CardEntryResponse;
+import com.invoice.invoiceservice.dtos.responses.CardEntryCreateResponse;
 import com.invoice.invoiceservice.services.CardEntryService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,13 +19,13 @@ public class CardEntryController {
     }
 
     @PostMapping
-    public ResponseEntity<CardEntryResponse> createCardEntry(
+    public ResponseEntity<CardEntryCreateResponse> createCardEntry(
         @RequestHeader("SELECTED-USER") String requesterKey,
         @PathVariable String walletKey,
         @PathVariable String cardKey,
         @Valid @RequestBody CreateCardEntryRequest createCardEntryRequest
     ) {
-        CardEntryResponse cardEntryResponse = cardEntryService.createCardEntry(
+        CardEntryCreateResponse cardEntryResponse = cardEntryService.createCardEntry(
             requesterKey,
             walletKey,
             cardKey,
