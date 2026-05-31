@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: invoice-mysql
+    container_name: invoice-service-mysql
     ports:
       - "3306:3306"
     environment:
@@ -20,7 +20,7 @@ services:
 
   localstack:
     image: localstack/localstack:4.4
-    container_name: invoice-localstack
+    container_name: invoice-service-localstack
     ports:
       - "4566:4566"
     environment:
@@ -38,13 +38,29 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: invoice-app
+    container_name: invoice-service-app
     ports:
       - "8080:8080"
     environment:
       MYSQL_HOST: mysql
       SNS_ENDPOINT: http://localstack:4566
       SQS_ENDPOINT: http://localstack:4566
+    depends_on:
+      mysql:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
+  listener:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: invoice-service-listener
+    environment:
+      MYSQL_HOST: mysql
+      SNS_ENDPOINT: http://localstack:4566
+      SQS_ENDPOINT: http://localstack:4566
+      SPRING_PROFILES_ACTIVE: consumer
     depends_on:
       mysql:
         condition: service_healthy
