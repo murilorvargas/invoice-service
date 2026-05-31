@@ -19,7 +19,7 @@ services:
       start_period: 15s
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:4.4
     container_name: invoice-localstack
     ports:
       - "4566:4566"
