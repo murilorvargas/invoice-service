@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -71,6 +72,16 @@ public class GlobalExceptionHandler {
             ex.getDescription()
         );
         return ResponseEntity.status(ex.getHttpStatus()).body(response);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeader(MissingRequestHeaderException ex) {
+        ErrorResponse response = new ErrorResponse(
+            HttpStatus.FORBIDDEN.getReasonPhrase(),
+            "GEN00403",
+            "You do not have permission to access this resource."
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
