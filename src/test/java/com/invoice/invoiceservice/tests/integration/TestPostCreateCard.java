@@ -21,7 +21,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
     @Test
     void createCard_walletOwner_naturalPerson_success() {
         String requesterKey = UUID.randomUUID().toString();
-        String walletKey = SetupTools.createWallet(requesterKey, null, null, null, null);
+        String walletKey = SetupTools.createWallet(requesterKey, UUID.randomUUID().toString(), DocumentHandlers.generateCpf(), null, null);
 
         String requestControlKey = UUID.randomUUID().toString();
         BigDecimal monthlyLimit = new BigDecimal("5000.00");
@@ -63,7 +63,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
     void createCard_walletOwner_legalPerson_success() {
         String requesterKey = UUID.randomUUID().toString();
         String documentNumber = DocumentHandlers.generateCnpj();
-        String walletKey = SetupTools.createWallet(requesterKey, null, documentNumber, null, null);
+        String walletKey = SetupTools.createWallet(requesterKey, UUID.randomUUID().toString(), documentNumber, null, null);
 
         String requestControlKey = UUID.randomUUID().toString();
         BigDecimal monthlyLimit = new BigDecimal("10000.00");
@@ -104,7 +104,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
     @Test
     void createCard_differentOwner_naturalPerson_success() {
         String requesterKey = UUID.randomUUID().toString();
-        String walletKey = SetupTools.createWallet(requesterKey, null, null, null, null);
+        String walletKey = SetupTools.createWallet(requesterKey, UUID.randomUUID().toString(), DocumentHandlers.generateCpf(), null, null);
 
         String requestControlKey = UUID.randomUUID().toString();
         String ownerDocumentNumber = DocumentHandlers.generateCpf();
@@ -151,7 +151,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
     @Test
     void createCard_differentOwner_legalPerson_success() {
         String requesterKey = UUID.randomUUID().toString();
-        String walletKey = SetupTools.createWallet(requesterKey, null, null, null, null);
+        String walletKey = SetupTools.createWallet(requesterKey, UUID.randomUUID().toString(), DocumentHandlers.generateCpf(), null, null);
 
         String requestControlKey = UUID.randomUUID().toString();
         String ownerDocumentNumber = DocumentHandlers.generateCnpj();
@@ -222,7 +222,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
     @Test
     void createCard_requesterDoesNotOwnWallet() {
         String walletOwnerKey = UUID.randomUUID().toString();
-        String walletKey = SetupTools.createWallet(walletOwnerKey, null, null, null, null);
+        String walletKey = SetupTools.createWallet(walletOwnerKey, UUID.randomUUID().toString(), DocumentHandlers.generateCpf(), null, null);
 
         String differentRequesterKey = UUID.randomUUID().toString();
         String requestControlKey = UUID.randomUUID().toString();
