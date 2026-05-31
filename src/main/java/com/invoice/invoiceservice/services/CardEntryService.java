@@ -287,4 +287,45 @@ public class CardEntryService {
         log.info("CardEntryService.processCardEntryConclusion - finished - cardEntryKey: {}",
             cardEntryConclusionMessage.getCardEntryKey());
     }
+
+    public PaginationResponse<CardEntryGetResponse> getCardEntries(
+        String requesterKey,
+        String walletKey,
+        String cardKey,
+        String cardEntryKey,
+        String requestControlKey,
+        int page,
+        int pageSize
+    ) {
+        log.info("CardEntryService.getCardEntries - start - walletKey: {}, cardKey: {}", walletKey, cardKey);
+
+        Wallet wallet = walletRepository.findByWalletKey(walletKey)
+            .orElseThrow(WalletNotFoundException::new);
+
+        if (!requesterKey.equals(wallet.getRequesterKey())) {
+            log.info("CardEntryService.getCardEntries - requester does not own wallet {}", walletKey);
+            throw new WalletNotFoundException();
+        }
+
+        Card card = cardRepository.findByCardKey(cardKey)
+            .orElseThrow(CardNotFoundException::new);
+
+        if (!card.getWallet().getWalletKey().equals(walletKey)) {
+            log.info("CardEntryService.getCardEntries - card {} does not belong to wallet {}", cardKey, walletKey);
+            throw new CardNotFoundException();
+        }
+
+        Specification<CardEntry> spec = Specification.where(CardEntrySpecification.withCard(card))
+            .and(CardEntrySpecification.withCardEntryKeyIfPresent(cardEntryKey))
+            .and(CardEntrySpecification.withRequestControlKeyIfPresent(requestControlKey));
+
+        List<CardEntryGetResponse> cardEntries = cardEntryRepository.findAll(spec, PageRequest.of(page - 1, pageSize))
+            .getContent()
+            .stream()
+            .map(CardEntryGetResponse::from)
+            .toList();
+
+        log.info("CardEntryService.getCardEntries - finished - walletKey: {}, cardKey: {}, total: {}", walletKey, cardKey, cardEntries.size());
+        return PaginationResponse.of(cardEntries, page, pageSize);
+    }
 }
