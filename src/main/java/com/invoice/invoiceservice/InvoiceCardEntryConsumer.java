@@ -31,8 +31,8 @@ public class InvoiceCardEntryConsumer {
     }
 
     private CardEntryMessage parseMessage(String rawMessage) {
-        Map<String, String> envelope = objectMapper.readValue(rawMessage, new TypeReference<>() {});
-        return objectMapper.readValue(envelope.get("Message"), CardEntryMessage.class);
+        Map<String, Object> envelope = objectMapper.readValue(rawMessage, new TypeReference<>() {});
+        return objectMapper.readValue((String) envelope.get("Message"), CardEntryMessage.class);
     }
 
     @SqsListener(value = INVOICE_CARD_ENTRY_CONSUMER)
