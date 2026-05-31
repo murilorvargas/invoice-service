@@ -6,13 +6,12 @@ import com.invoice.invoiceservice.entities.Wallet;
 import com.invoice.invoiceservice.entities.WalletLimit;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public record WalletCreateResponse(
     String walletKey,
     String requestControlKey,
     String documentNumber,
-    String status,
+    String walletStatus,
     InvoiceConfigurationResponse invoiceConfiguration,
     List<WalletLimitResponse> walletLimits
 ) {
@@ -30,21 +29,13 @@ public record WalletCreateResponse(
             wallet.getInvoiceConfiguration().getDueType().getEnumerator()
         );
 
-        List<WalletLimitResponse> walletLimitResponses = walletLimits.stream()
-            .map(walletLimit -> new WalletLimitResponse(
-                walletLimit.getWalletLimitKey(),
-                walletLimit.getLimitAmount(),
-                walletLimit.getUsedLimitAmount()
-            ))
-            .collect(Collectors.toList());
-
         return new WalletCreateResponse(
             wallet.getWalletKey(),
             wallet.getRequestControlKey(),
             wallet.getDocumentNumber(),
             wallet.getWalletStatus().getEnumerator(),
             invoiceConfigurationResponse,
-            walletLimitResponses
+            walletLimits.stream().map(WalletLimitResponse::from).toList()
         );
     }
 }
