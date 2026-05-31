@@ -1,5 +1,6 @@
 package com.invoice.invoiceservice.connectors;
 
+import io.awspring.cloud.sns.core.SnsNotification;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class SnsConnector {
     public void publishMessage(String topicName, Object message) {
         try {
             String messageJson = objectMapper.writeValueAsString(message);
-            snsTemplate.sendNotification(topicName, messageJson);
+            snsTemplate.sendNotification(topicName, SnsNotification.of(messageJson));
         } catch (Exception e) {
             log.error("SnsConnector.publishMessage - failed to publish message to topic {}", topicName, e);
         }
