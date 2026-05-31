@@ -12,7 +12,7 @@ public record WalletGetByKeyResponse(
     String walletKey,
     String requestControlKey,
     String documentNumber,
-    String status,
+    String walletStatus,
     InvoiceConfigurationResponse invoiceConfiguration,
     List<WalletLimitResponse> walletLimits
 ) {

@@ -6,7 +6,7 @@ public record WalletGetResponse(
     String walletKey,
     String requestControlKey,
     String documentNumber,
-    String status
+    String walletStatus
 ) {
 
     public static WalletGetResponse from(Wallet wallet) {
