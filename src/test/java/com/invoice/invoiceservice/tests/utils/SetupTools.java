@@ -2,6 +2,7 @@ package com.invoice.invoiceservice.tests.utils;
 
 import io.restassured.http.ContentType;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,9 +17,6 @@ public class SetupTools {
         Map<String, Object> invoiceConfiguration,
         Double limitAmount
     ) {
-        String effectiveRequesterKey = requesterKey != null ? requesterKey : UUID.randomUUID().toString();
-        String effectiveRequestControlKey = requestControlKey != null ? requestControlKey : UUID.randomUUID().toString();
-        String effectiveDocumentNumber = documentNumber != null ? documentNumber : DocumentHandlers.generateCpf();
         Map<String, Object> effectiveInvoiceConfig = invoiceConfiguration != null ? invoiceConfiguration : Map.of(
             "closingFixedDay", 15,
             "dueType", "FIXED_DAY",
@@ -31,10 +29,10 @@ public class SetupTools {
         double effectiveLimitAmount = limitAmount != null ? limitAmount : 10000.00;
 
         Map<String, Object> payload = Map.of(
-            "requestControlKey", effectiveRequestControlKey,
+            "requestControlKey", requestControlKey,
             "owner", Map.of(
                 "name", "Test Owner",
-                "documentNumber", effectiveDocumentNumber
+                "documentNumber", documentNumber
             ),
             "invoiceConfiguration", effectiveInvoiceConfig,
             "walletLimit", Map.of(
@@ -43,7 +41,7 @@ public class SetupTools {
         );
 
         return given()
-            .header("SELECTED-USER", effectiveRequesterKey)
+            .header("SELECTED-USER", requesterKey)
             .contentType(ContentType.JSON)
             .body(payload)
         .when()
@@ -52,5 +50,34 @@ public class SetupTools {
             .statusCode(201)
             .extract().response()
             .jsonPath().getString("walletKey");
+    }
+
+    public static String createCard(
+        String requesterKey,
+        String walletKey,
+        String requestControlKey,
+        Map<String, Object> owner,
+        Double monthlyLimitAmount
+    ) {
+        Double effectiveMonthlyLimit = monthlyLimitAmount != null ? monthlyLimitAmount : 5000.00;
+
+        Map<String, Object> payload = new HashMap<>(Map.of(
+            "requestControlKey", requestControlKey,
+            "monthlyLimitAmount", effectiveMonthlyLimit
+        ));
+        if (owner != null) {
+            payload.put("owner", owner);
+        }
+
+        return given()
+            .header("SELECTED-USER", requesterKey)
+            .contentType(ContentType.JSON)
+            .body(payload)
+        .when()
+            .post("/wallets/{walletKey}/cards", walletKey)
+        .then()
+            .statusCode(201)
+            .extract().response()
+            .jsonPath().getString("cardKey");
     }
 }
