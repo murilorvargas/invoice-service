@@ -58,7 +58,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(walletKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(documentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isNotNull();
+        assertThat(postResponse.jsonPath().getString("walletStatus")).isNotNull();
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -71,7 +71,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(getResponse.jsonPath().getString("data[0].walletKey")).isEqualTo(walletKey);
         assertThat(getResponse.jsonPath().getString("data[0].requestControlKey")).isEqualTo(requestControlKey);
         assertThat(getResponse.jsonPath().getString("data[0].documentNumber")).isEqualTo(documentNumber);
-        assertThat(getResponse.jsonPath().getString("data[0].status")).isNotNull();
+        assertThat(getResponse.jsonPath().getString("data[0].walletStatus")).isNotNull();
 
         Response getByKeyResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -131,7 +131,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(walletKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(documentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isNotNull();
+        assertThat(postResponse.jsonPath().getString("walletStatus")).isNotNull();
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -144,7 +144,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(getResponse.jsonPath().getString("data[0].walletKey")).isEqualTo(walletKey);
         assertThat(getResponse.jsonPath().getString("data[0].requestControlKey")).isEqualTo(requestControlKey);
         assertThat(getResponse.jsonPath().getString("data[0].documentNumber")).isEqualTo(documentNumber);
-        assertThat(getResponse.jsonPath().getString("data[0].status")).isNotNull();
+        assertThat(getResponse.jsonPath().getString("data[0].walletStatus")).isNotNull();
 
         Response getByKeyResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -203,7 +203,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(walletKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(documentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isNotNull();
+        assertThat(postResponse.jsonPath().getString("walletStatus")).isNotNull();
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -216,7 +216,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(getResponse.jsonPath().getString("data[0].walletKey")).isEqualTo(walletKey);
         assertThat(getResponse.jsonPath().getString("data[0].requestControlKey")).isEqualTo(requestControlKey);
         assertThat(getResponse.jsonPath().getString("data[0].documentNumber")).isEqualTo(documentNumber);
-        assertThat(getResponse.jsonPath().getString("data[0].status")).isNotNull();
+        assertThat(getResponse.jsonPath().getString("data[0].walletStatus")).isNotNull();
 
         Response getByKeyResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -275,7 +275,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(walletKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(documentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isNotNull();
+        assertThat(postResponse.jsonPath().getString("walletStatus")).isNotNull();
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -288,7 +288,7 @@ class TestPostCreateWallet extends BaseIntegrationTest {
         assertThat(getResponse.jsonPath().getString("data[0].walletKey")).isEqualTo(walletKey);
         assertThat(getResponse.jsonPath().getString("data[0].requestControlKey")).isEqualTo(requestControlKey);
         assertThat(getResponse.jsonPath().getString("data[0].documentNumber")).isEqualTo(documentNumber);
-        assertThat(getResponse.jsonPath().getString("data[0].status")).isNotNull();
+        assertThat(getResponse.jsonPath().getString("data[0].walletStatus")).isNotNull();
 
         Response getByKeyResponse = given()
             .header("SELECTED-USER", requesterKey)

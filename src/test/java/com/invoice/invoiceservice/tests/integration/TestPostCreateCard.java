@@ -44,7 +44,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
         String cardKey = postResponse.jsonPath().getString("cardKey");
         assertThat(cardKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
-        assertThat(postResponse.jsonPath().getString("status")).isEqualTo("ACTIVE");
+        assertThat(postResponse.jsonPath().getString("cardStatus")).isEqualTo("ACTIVE");
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -56,7 +56,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
 
         assertThat(getResponse.jsonPath().getString("data[0].cardKey")).isEqualTo(cardKey);
         assertThat(getResponse.jsonPath().getString("data[0].requestControlKey")).isEqualTo(requestControlKey);
-        assertThat(getResponse.jsonPath().getString("data[0].status")).isEqualTo("ACTIVE");
+        assertThat(getResponse.jsonPath().getString("data[0].cardStatus")).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -87,7 +87,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
         assertThat(cardKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(documentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isEqualTo("ACTIVE");
+        assertThat(postResponse.jsonPath().getString("cardStatus")).isEqualTo("ACTIVE");
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -133,7 +133,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
         assertThat(cardKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(ownerDocumentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isEqualTo("ACTIVE");
+        assertThat(postResponse.jsonPath().getString("cardStatus")).isEqualTo("ACTIVE");
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -180,7 +180,7 @@ class TestPostCreateCard extends BaseIntegrationTest {
         assertThat(cardKey).isNotNull();
         assertThat(postResponse.jsonPath().getString("requestControlKey")).isEqualTo(requestControlKey);
         assertThat(postResponse.jsonPath().getString("documentNumber")).isEqualTo(ownerDocumentNumber);
-        assertThat(postResponse.jsonPath().getString("status")).isEqualTo("ACTIVE");
+        assertThat(postResponse.jsonPath().getString("cardStatus")).isEqualTo("ACTIVE");
 
         Response getResponse = given()
             .header("SELECTED-USER", requesterKey)
