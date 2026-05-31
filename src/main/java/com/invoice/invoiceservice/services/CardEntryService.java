@@ -7,11 +7,17 @@ import com.invoice.invoiceservice.dtos.messages.CardEntryConclusionMessage;
 import com.invoice.invoiceservice.dtos.messages.CardEntryMessage;
 import com.invoice.invoiceservice.dtos.requests.CreateCardEntryRequest;
 import com.invoice.invoiceservice.dtos.responses.CardEntryCreateResponse;
+import com.invoice.invoiceservice.dtos.responses.CardEntryGetResponse;
+import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.entities.*;
 import com.invoice.invoiceservice.exceptions.customexceptions.*;
 import com.invoice.invoiceservice.repositories.*;
+import com.invoice.invoiceservice.repositories.specifications.CardEntrySpecification;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -29,6 +35,7 @@ import java.util.UUID;
 @Transactional
 public class CardEntryService {
 
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final SnsConnector snsConnector;
 
     private final WalletRepository walletRepository;
@@ -43,6 +50,7 @@ public class CardEntryService {
     private final InvoiceItemRepository invoiceItemRepository;
 
     public CardEntryService(
+        ApplicationEventPublisher applicationEventPublisher,
         SnsConnector snsConnector,
         WalletRepository walletRepository,
         CardRepository cardRepository,
@@ -55,6 +63,7 @@ public class CardEntryService {
         InvoiceItemStatusRepository invoiceItemStatusRepository,
         InvoiceItemRepository invoiceItemRepository
     ) {
+        this.applicationEventPublisher = applicationEventPublisher;
         this.snsConnector = snsConnector;
         this.walletRepository = walletRepository;
         this.cardRepository = cardRepository;
@@ -66,13 +75,6 @@ public class CardEntryService {
         this.invoiceRepository = invoiceRepository;
         this.invoiceItemStatusRepository = invoiceItemStatusRepository;
         this.invoiceItemRepository = invoiceItemRepository;
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    private void publishCardEntryConclusionMessage(CardEntryConclusionMessage cardEntryConclusionMessage) {
-        log.info("CardEntryService.publishCardEntryConclusionMessage - start - walletKey: {}, cardEntryKey: {}",
-            cardEntryConclusionMessage.getWalletKey(), cardEntryConclusionMessage.getCardEntryKey());
-        snsConnector.publishMessage(CardEntryMessage.TOPIC_NAME, cardEntryConclusionMessage);
     }
 
     private LocalDate getInvoiceDueDate(InvoiceConfiguration invoiceConfiguration, LocalDate closingDate) {
@@ -151,6 +153,13 @@ public class CardEntryService {
         return invoices;
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    void publishCardEntryConclusionMessage(CardEntryConclusionMessage cardEntryConclusionMessage) {
+        log.info("CardEntryService.publishCardEntryConclusionMessage - start - walletKey: {}, cardEntryKey: {}",
+            cardEntryConclusionMessage.getWalletKey(), cardEntryConclusionMessage.getCardEntryKey());
+        snsConnector.publishMessage(CardEntryMessage.TOPIC_NAME, cardEntryConclusionMessage);
+    }
+
     public CardEntryCreateResponse createCardEntry(
         String requesterKey,
         String walletKey,
@@ -226,16 +235,10 @@ public class CardEntryService {
 
         cardEntryRepository.save(cardEntry);
 
-        publishCardEntryConclusionMessage(new CardEntryConclusionMessage(wallet.getWalletKey(), cardEntry.getCardEntryKey()));
+        applicationEventPublisher.publishEvent(new CardEntryConclusionMessage(wallet.getWalletKey(), cardEntry.getCardEntryKey()));
 
         log.info("CardEntryService.createCardEntry - finished - cardEntryKey: {}", cardEntry.getCardEntryKey());
-        return CardEntryCreateResponse.from(
-            cardEntry.getCardEntryKey(),
-            cardEntry.getRequestControlKey(),
-            cardEntry.getAmount(),
-            cardEntry.getCardEntryType().getEnumerator(),
-            cardEntry.getCardEntryStatus().getEnumerator()
-        );
+        return CardEntryCreateResponse.from(cardEntry);
     }
 
     public void processCardEntryConclusion(CardEntryConclusionMessage cardEntryConclusionMessage) {
