@@ -53,7 +53,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         assertThat(postResponse.jsonPath().getString("cardEntryType")).isEqualTo("PURCHASE");
         assertThat(postResponse.jsonPath().getString("cardEntryStatus")).isEqualTo("PROCESSING_CONCLUSION");
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Response getCardEntriesResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -140,7 +140,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         assertThat(postResponse.jsonPath().getString("cardEntryType")).isEqualTo("PURCHASE");
         assertThat(postResponse.jsonPath().getString("cardEntryStatus")).isEqualTo("PROCESSING_CONCLUSION");
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Response getCardEntriesResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -217,7 +217,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         assertThat(postResponse.jsonPath().getString("cardEntryType")).isEqualTo("WITHDRAW");
         assertThat(postResponse.jsonPath().getString("cardEntryStatus")).isEqualTo("PROCESSING_CONCLUSION");
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Response getCardEntriesResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -276,7 +276,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         assertThat(postResponse.jsonPath().getFloat("amount")).isEqualTo(800.0f);
         assertThat(postResponse.jsonPath().getString("cardEntryStatus")).isEqualTo("PROCESSING_CONCLUSION");
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Response getCardEntriesResponse = given()
             .header("SELECTED-USER", requesterKey)
@@ -299,6 +299,18 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
             .extract().response();
 
         assertThat(getWalletResponse.jsonPath().getFloat("walletLimits[0].usedLimitAmount")).isEqualTo(800.0f);
+
+        Response getCardsResponse = given()
+            .header("SELECTED-USER", requesterKey)
+            .queryParam("cardKey", cardKey)
+        .when()
+            .get(GET_CARDS, walletKey)
+        .then()
+            .statusCode(200)
+            .extract().response();
+
+        assertThat((Object) getCardsResponse.jsonPath().get("data[0].monthlyLimitAmount")).isNull();
+        assertThat((Object) getCardsResponse.jsonPath().get("data[0].usedMonthlyLimitAmount")).isNull();
     }
 
     @Test
@@ -430,7 +442,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         .then()
             .statusCode(201);
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Map<String, Object> secondPayload = Map.of(
             "requestControlKey", UUID.randomUUID().toString(),
@@ -476,7 +488,7 @@ class TestPostCreateCardEntry extends BaseIntegrationTest {
         .then()
             .statusCode(201);
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
         Map<String, Object> secondPayload = Map.of(
             "requestControlKey", UUID.randomUUID().toString(),
