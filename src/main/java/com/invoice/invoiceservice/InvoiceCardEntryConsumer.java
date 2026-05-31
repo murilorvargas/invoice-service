@@ -7,6 +7,7 @@ import com.invoice.invoiceservice.exceptions.customexceptions.CardEntryNotInProc
 import com.invoice.invoiceservice.services.CardEntryService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@Profile("consumer")
 public class InvoiceCardEntryConsumer {
 
     private static final String INVOICE_CARD_ENTRY_CONSUMER = "invoice-card_entry-consumer";
