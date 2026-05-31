@@ -6,11 +6,14 @@ import com.invoice.invoiceservice.dtos.responses.CardGetResponse;
 import com.invoice.invoiceservice.dtos.responses.commons.PaginationResponse;
 import com.invoice.invoiceservice.services.CardService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Validated
 @RequestMapping("/wallets/{walletKey}/cards")
 public class CardController {
 
@@ -38,7 +41,7 @@ public class CardController {
         @RequestParam(required = false) String requestControlKey,
         @RequestParam(required = false) String documentNumber,
         @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "30") int pageSize
+        @RequestParam(defaultValue = "30") @Max(100) int pageSize
     ) {
         PaginationResponse<CardGetResponse> cardResponses = cardService.getCards(requesterKey, walletKey, cardKey, requestControlKey, documentNumber, page, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(cardResponses);

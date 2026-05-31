@@ -7,11 +7,14 @@ import com.invoice.invoiceservice.dtos.responses.WalletGetByKeyResponse;
 import com.invoice.invoiceservice.dtos.responses.WalletGetResponse;
 import com.invoice.invoiceservice.services.WalletService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Validated
 @RequestMapping("/wallets")
 public class WalletController {
 
@@ -37,7 +40,7 @@ public class WalletController {
         @RequestParam(required = false) String requestControlKey,
         @RequestParam(required = false) String documentNumber,
         @RequestParam(defaultValue = "1") int page,
-        @RequestParam(defaultValue = "30") int pageSize
+        @RequestParam(defaultValue = "30") @Max(100) int pageSize
     ) {
         PaginationResponse<WalletGetResponse> walletResponses = walletService.getWallets(requesterKey, walletKey, requestControlKey, documentNumber, page, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(walletResponses);
