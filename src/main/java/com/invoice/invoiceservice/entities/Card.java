@@ -31,10 +31,10 @@ public class Card {
     @Column(name = "document_number", nullable = false, length = 14)
     private String documentNumber;
 
-    @Column(name = "limit_amount", nullable = false, precision = 19, scale = 2)
+    @Column(name = "monthly_limit_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal monthlyLimitAmount;
 
-    @Column(name = "used_limit_amount", nullable = false, precision = 19, scale = 2)
+    @Column(name = "used_monthly_limit_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal usedMonthlyLimitAmount;
 
     @CreationTimestamp

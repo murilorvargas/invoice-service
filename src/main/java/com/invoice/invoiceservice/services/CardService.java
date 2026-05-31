@@ -65,12 +65,14 @@ public class CardService {
             documentNumber = createCardRequest.getOwner().getDocumentNumber();
         }
 
+        BigDecimal usedMonthlyLimitAmount = createCardRequest.getMonthlyLimitAmount() != null ? new BigDecimal("0") : null;
+
         Card card = new Card(
             UUID.randomUUID().toString(),
             createCardRequest.getRequestControlKey(),
             documentNumber,
             createCardRequest.getMonthlyLimitAmount(),
-            new BigDecimal("0"),
+            usedMonthlyLimitAmount,
             wallet,
             cardStatus
         );
