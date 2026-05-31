@@ -6,7 +6,7 @@ public record CardGetResponse(
     String cardKey,
     String requestControlKey,
     String documentNumber,
-    String status
+    String cardStatus
 ) {
 
     public static CardGetResponse from(Card card) {

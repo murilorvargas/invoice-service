@@ -6,7 +6,7 @@ public record CardCreateResponse(
     String cardKey,
     String requestControlKey,
     String documentNumber,
-    String status
+    String cardStatus
 ) {
 
     public static CardCreateResponse from(Card card) {
