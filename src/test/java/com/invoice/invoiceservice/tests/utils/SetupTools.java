@@ -4,7 +4,6 @@ import io.restassured.http.ContentType;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 
@@ -59,14 +58,14 @@ public class SetupTools {
         Map<String, Object> owner,
         Double monthlyLimitAmount
     ) {
-        Double effectiveMonthlyLimit = monthlyLimitAmount != null ? monthlyLimitAmount : 5000.00;
-
         Map<String, Object> payload = new HashMap<>(Map.of(
-            "requestControlKey", requestControlKey,
-            "monthlyLimitAmount", effectiveMonthlyLimit
+            "requestControlKey", requestControlKey
         ));
         if (owner != null) {
             payload.put("owner", owner);
+        }
+        if (monthlyLimitAmount != null) {
+            payload.put("monthlyLimitAmount", monthlyLimitAmount);
         }
 
         return given()
@@ -79,5 +78,40 @@ public class SetupTools {
             .statusCode(201)
             .extract().response()
             .jsonPath().getString("cardKey");
+    }
+
+    public static String createCardEntry(
+        String requesterKey,
+        String walletKey,
+        String cardKey,
+        String requestControlKey,
+        Double amount,
+        Integer numberOfInstallments,
+        String cardEntryType,
+        String merchantName
+    ) {
+        Double effectiveAmount = amount != null ? amount : 100.00;
+        Integer effectiveInstallments = numberOfInstallments != null ? numberOfInstallments : 1;
+        String effectiveType = cardEntryType != null ? cardEntryType : "PURCHASE";
+        String effectiveMerchantName = merchantName != null ? merchantName : "Test Merchant";
+
+        Map<String, Object> payload = Map.of(
+            "requestControlKey", requestControlKey,
+            "amount", effectiveAmount,
+            "numberOfInstallments", effectiveInstallments,
+            "cardEntryType", effectiveType,
+            "cardEntryData", Map.of("merchantName", effectiveMerchantName)
+        );
+
+        return given()
+            .header("SELECTED-USER", requesterKey)
+            .contentType(ContentType.JSON)
+            .body(payload)
+        .when()
+            .post("/wallets/{walletKey}/cards/{cardKey}/card_entries", walletKey, cardKey)
+        .then()
+            .statusCode(201)
+            .extract().response()
+            .jsonPath().getString("cardEntryKey");
     }
 }
